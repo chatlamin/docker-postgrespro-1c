@@ -17,6 +17,20 @@ RUN apt-get -qq update \
 RUN localedef --inputfile ru_RU --force --charmap UTF-8 --alias-file /usr/share/locale/locale.alias ru_RU.UTF-8
 ENV LANG ru_RU.utf8
 
+# common settings
+ENV MAX_CONNECTIONS 500
+ENV WAL_KEEP_SEGMENTS 256
+ENV MAX_WAL_SENDERS 100
+
+# master/slave settings
+ENV REPLICATION_ROLE master
+ENV REPLICATION_USER replication
+ENV REPLICATION_PASSWORD ""
+
+# slave settings
+ENV POSTGRES_MASTER_SERVICE_HOST localhost
+ENV POSTGRES_MASTER_SERVICE_PORT 5432
+
 ENV PATH /usr/lib/postgresql/$SERVER_VERSION/bin:$PATH
 ENV PGDATA /data
 RUN echo deb http://1c.postgrespro.ru/deb/ xenial main > /etc/apt/sources.list.d/postgrespro-1c.list \
@@ -33,13 +47,21 @@ RUN mkdir --parent /var/run/postgresql \
   && chown --recursive postgres:postgres "$PGDATA" \
   && mkdir /docker-entrypoint-initdb.d
 
-COPY container/docker-entrypoint.sh /
-COPY container/postgresql.conf.sh /docker-entrypoint-initdb.d
+COPY 10-config.sh /docker-entrypoint-initdb.d/
+COPY 20-replication.sh /docker-entrypoint-initdb.d
+
+COPY container/docker-entrypoint.sh
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
 VOLUME $PGDATA
 
 EXPOSE 5432
+
+# Evaluate vars inside PGDATA at runtime.
+# For example HOSTNAME in 'ENV PGDATA=/mnt/$HOSTNAME'
+# is resolved runtime rather then during build
+RUN sed -i 's/set -e/set -e -x\nPGDATA=$(eval echo "$PGDATA")/' /docker-entrypoint.sh
+
 
 CMD ["postgres"]
