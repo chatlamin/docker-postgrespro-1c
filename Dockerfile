@@ -47,10 +47,11 @@ RUN mkdir --parent /var/run/postgresql \
   && chown --recursive postgres:postgres "$PGDATA" \
   && mkdir /docker-entrypoint-initdb.d
 
+COPY container/docker-entrypoint.sh /
 COPY 10-config.sh /docker-entrypoint-initdb.d/
 COPY 20-replication.sh /docker-entrypoint-initdb.d
 
-COPY container/docker-entrypoint.sh
+
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
