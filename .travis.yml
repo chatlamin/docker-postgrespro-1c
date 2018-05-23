@@ -6,7 +6,7 @@ env:
 
 before_script:
   - env | sort
-  - image="nebirhos/postgres-replication:$VERSION"
+  - image="chatlamin/postgrespro-1c:$VERSION"
 
 script:
   - docker build -t "$image" .
