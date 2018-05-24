@@ -7,8 +7,17 @@ postgres-slave:
   environment:
     REPLICATION_ROLE: slave
     POSTGRES_MASTER_SERVICE_HOST: postgres-master
+    POSTGRES_INITDB_XLOGDIR: /111
+  volumes:
+    - /home/adminiztrator/docker-data/postgres/slave:/data
+    - /media/hdd/postgres-log/slave:/111
 
 postgres-master:
   image: "chatlamin/postgrespro-1c"
   ports:
     - 5432:5432
+  environment:
+    POSTGRES_INITDB_XLOGDIR: /111
+  volumes:
+    - /home/adminiztrator/docker-data/postgres/master:/data
+    - /media/hdd/postgres-log/master:/111
